@@ -4,6 +4,7 @@
     <!-- <HelloWorld msg="Welcome to Your Vue.js + TypeScript App"/> -->
     <Hello
       msg="i am msg"
+      @add-feature="onAddFeature"
     ></Hello>
   </div>
 </template>
@@ -11,7 +12,7 @@
 <script lang="ts">
   import { Component, Vue } from 'vue-property-decorator';
   // import HelloWorld from './components/HelloWorld.vue';
-  import Hello from './components/Hello.vue';
+  import Hello, {Feature}from './components/Hello.vue';
 
   @Component({
     components: {
@@ -19,7 +20,11 @@
       Hello,
     },
   })
-  export default class App extends Vue {}
+  export default class App extends Vue {
+    onAddFeature (feature: Feature) {
+      console.log(feature.name)
+    }
+  }
 </script>
 
 <style lang="scss">

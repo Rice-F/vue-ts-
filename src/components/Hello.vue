@@ -19,7 +19,7 @@
 </template>
 
 <script lang="ts">
-	import {Component, Prop, Vue} from 'vue-property-decorator';
+	import {Component, Prop, Vue, Emit, Watch} from 'vue-property-decorator';
 
 	// 类型注解
 	let name = 'asher'; // 直接赋值触发类型推论
@@ -93,6 +93,22 @@
   }
   info({name: 'jerry'})
 
+  // 泛型
+  // 从接口获取来的数据，我们可以做个结构约束
+  interface Result<T> {
+    code: 0 | 1,
+    data: T[]
+  }
+
+  // 泛型函数 
+  function getData<T>(): Promise<Result<T>> {
+    const data: any[] = [
+      {id: '1', name: '类型注解', version: '2.0'},
+      {id: '2', name: '编译型语言', version: '1.0'}
+    ];
+    return Promise.resolve({code: 1, data} as Result<T>)
+  }
+
 	@Component
 	export default class Hello extends Vue {
     // private 仅当前类可以使用
@@ -119,19 +135,28 @@
     // private features = ['静态类型','编译']
 
     // 声明普通属性的时候，如果数据结构符合类的数据结构，则默认允许声明
-    private features: Feature[] = [
-      {id: 1, name: '静态类型', version: '1.0'},
-      {id: 2, name: '编译', version: '1.0'}
-    ]
+    // private features: Feature[] = [
+    //   {id: 1, name: '静态类型', version: '1.0'},
+    //   {id: 2, name: '编译', version: '1.0'}
+    // ]
+
+    private features: Feature[] = []
 
     // 生命周期函数直接调用即可
-    created () {
-      // ...
+    async created () {
+      const result = await getData<Feature>()
+      this.features = result.data
     }
 
     // 计算属性，可理解为computed
     get featureCount () {
       return this.features.length
+    }
+
+    // watch语法
+    @Watch('msg')
+    onRouteChange(val: string, oldVal: any) {
+      console.log(val, oldVal)
     }
 
     // 事件方法直接写就可以，这里就相当于原先的methods
@@ -140,16 +165,29 @@
     //   event.target.value = ''
     // }
 
-    addFeature(event: any){
-      this.features.push(
-        {
-          id: this.features.length + 1, 
-          name: event.target.value, 
-          version: '1.0'
-        }
-      );
+    // 添加数组新元素的时候，同时派发事件
+    @Emit()
+    private addFeature(event: any) {
+      const feature = {
+        name: event.target.value,
+        id: this.features.length + 1,
+        version: '1.0'
+      }
+      this.features.push(feature)
       event.target.value = ''
+      return feature;
     }
+
+    // addFeature(event: any){
+    //   this.features.push(
+    //     {
+    //       id: this.features.length + 1, 
+    //       name: event.target.value, 
+    //       version: '1.0'
+    //     }
+    //   );
+    //   event.target.value = ''
+    // }
   } 
 
   class Shape {
@@ -211,7 +249,7 @@
   const exployee = new Employee()
   // exployee.fullName = 'Bob Smith'
 
-  class Feature {
+  export class Feature {
     constructor(public id: number, public name: string, public version: string){}
   }
 
@@ -242,6 +280,8 @@
       return `Hello ${this.firstName} ${this.lastName}`
     }
   }
+  const user4 = new Greeter('Jane', 'Asher')
+  greeting1(user4)
 </script>
 
 <style scoped>
